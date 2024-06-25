@@ -52,6 +52,97 @@ On the other end of the spectrum, the 15 least frequent tokens appear only 3 tim
 ```
 ('gallinae', 3), ('intergrades', 3), ('northeasterly', 3), ('tuscola', 3), ('roundabouts', 3), ('zoromski', 3), ('forrester', 3), ('kreutzer', 3), ('prefaced', 3), ('philipp', 3), ('chants', 3), ('sonatine', 3), ('mineurs', 3), ('étude', 3), ('caprices', 3)
 ```
-If a minimum frequency threshold of 4 were defined for the vocabulary, the vocabulary size would decrease from 28,782 to 23,652 unique tokens. This means that 5,130 tokens (28,782 - 23,652) are used only 3 times in the entire dataset. With this change that leads to a smaller vocab, the complexity is reduced and training becomes much easier. However, these changes can also lead to a reduction in generalizing ability, and the model may have less creativity. In this project, however, the minimum frequency threshold of 4 is not used, and all 28,782 tokens are included in the vocabulary.
+If a minimum frequency threshold of 4 were defined for the vocabulary, the vocabulary size would decrease from 28,782 to 23,652 unique tokens. This means that 5,130 tokens (28,782 - 23,652) are used only 3 times in the entire dataset. With this change that leads to a smaller vocab, the complexity is reduced and training becomes much easier. However, these changes can also lead to a reduction in generalizing ability, and the model may have less creativity. 
 
-### 4.1. Model
+In this project, the minimum frequency threshold of 4 is not used, and all 28,782 tokens are included in the vocabulary. For making the train and label for the model, the raw text `seq_len` tokens are considered as input, and the next token is used as the output. For the base model, the sequence length used is 35 tokens.
+
+### 4.2. Model
+For the base model, the first layer is an embedding layer with a size of 300. After the embedding layer, a dropout layer with a rate of 0.5 is added. Then, a 2-layer LSTM is used. For the LSTM layers, an rnn_dropout of 0.2 is used. Finally, a fully connected layer is applied to the output of the LSTM, with an output size equal to the vocabulary length.
+
+The summary of the model is:
+```
+LanguageModel(
+  (embedding): Embedding(28782, 300)
+  (dropout): Dropout(p=0.5, inplace=False)
+  (lstm): LSTM(300, 512, num_layers=2, batch_first=True, dropout=0.2)
+  (fc): Linear(in_features=512, out_features=28782, bias=True)
+)
+```
+For the improved model, the following changes were made to the base architecture:
+
+1. The embedding layer size was increased from 300 to 400 dimensions.
+2. Instead of a traditional dropout layer, a Locked Dropout layer with a rate of 0.65 was used after the embedding layer.
+3. The LSTM was expanded to 3 layers, with an input/output size of 400 and hidden layers size of 1150.
+4. After each LSTM layer, a Locked Dropout layer was added with a rate of 0.3. For the final LSTM layer, the Locked Dropout rate was increased to 0.4.
+5. The fully connected layer at the end has the same weight as the embedding layer, a technique called weight tying, where the weights are shared and trained simultaneously.
+6. Additionally, a weight dropout of 0.5 was added to the recurrent weights of the LSTM layers.
+
+The overall model architecture can be summarized as:
+```
+LanguageModel(
+  (embedding): Embedding(23652, 400)
+  (embedding_dropout): LockedDropout(p=0.65)
+  (lstms): ModuleList(
+    (0): WeightDrop(
+      (module): LSTM(400, 1150)
+    )
+    (lstm0_dropout): LockedDropout(p=0.3)
+    (1): WeightDrop(
+      (module): LSTM(1150, 1150)
+    )
+    (lstm1_dropout): LockedDropout(p=0.3)
+    (2): WeightDrop(
+      (module): LSTM(1150, 400)
+    )
+    (lstm2_dropout): LockedDropout(p=0.4)
+  )
+  (fc): Linear(in_features=1150, out_features=23652, bias=True)
+)
+```
+### 4.3. Configurations
+For the training process, cross-entropy was used as the loss function and perplexity was used as the model performance metric. The SGD optimizer was employed for training.
+
+The base model had a learning rate of 3, a weight decay of 1e-6, and a momentum of 0.9. The batch size was 20 and the sequence length was 35.
+
+The improved model utilized a higher learning rate of 7.5, again with a weight decay of 1e-6 and a momentum of 0.9. The batch size was increased to 80 and the sequence length was increased to 70. The higher learning rate for the improved model was enabled by the additional regularization techniques that were introduced.
+
+To ensure stability during training, gradient clipping was applied with a clip value of 0.25 during the backward pass.
+
+### 4.4. Train
+The learning curves clearly demonstrate the impact of the additional regularization techniques introduced in the improved model. For access to the learning curves, click [here](https://www.comet.com/ft-azad/lm-awd-lstm/view/new/panels).
+
+Without the regularization, the base model's training loss dropped significantly early on, indicating a tendency to overfit the training dataset. This is a common issue that can negatively impact the model's generalization performance on unseen data.
+
+In contrast, the improved model with the added regularization showed a much more gradual descent in the training loss. The loss did not drop too rapidly, allowing the model to generalize better and avoid premature overfitting.
+
+This difference in the learning curves illustrates how the regularization techniques were crucial in enabling the improved model to learn more robust and generalized representations, rather than simply memorizing the training data.
+
+![Learning Curve](https://github.com/ft-Azad/Language-Modeling/blob/main/metric_train%20VS%20epoch.jpeg)
+
+### 4.4. Evaluate
+
+As can be seen in the validation curves, which are available [here](https://www.comet.com/ft-azad/lm-awd-lstm/view/new/panels), changing the sequence length and batch size had a significant positive impact on the model's performance metrics. Increasing the sequence length allowed the model to better capture contextual information, leading to improved perplexity scores. Similarly, the larger batch size facilitated more generalized learning steps, further enhancing the model's capabilities.
+
+However, when introducing a new architectural change that included increasing the embedding size, adding an extra LSTM layer, and using higher hidden dimensions for the LSTMs, the performance metrics actually decreased and became less stable. This was likely due to the larger number of learning parameters. Most of these parameters were caused by the embedding layer and the final fully connected layer. The size of these layers was defined by the vocabulary length and the embedding length, which led to a very large number of parameters. The model struggled to learn these parameters effectively with the given dataset size.
+
+After implementing the weight tying technique, the parameters for the embedding layer and the final fully connected layer became one and the same. This meant the model only needed to learn half the number of parameters for encoding and decoding the tokens. This change had a dramatic positive impact, allowing the model to achieve the best perplexity scores by a wide margin compared to the previous configurations.
+
+To prevent overfitting as training progressed, techniques such as embedding dropout, locked dropout, and weight drop were introduced. While these regularizers did cause the model to learn more slowly initially, they ultimately allowed the model to continue improving even as the unregularized model started to overfit. The regularized model was able to achieve much better perplexity scores over longer training times and higher epochs compared to the previous configurations.
+
+![validation Curve](https://github.com/ft-Azad/Language-Modeling/blob/main/metric_valid%20VS%20epoch.jpeg)
+
+### 4.5. Test and Generate
+The loss obtained on the test set is 86.92, which is not the best that can be achieved, but the effect of the applied techniques can be clearly seen compared to the base model.
+
+For generating text and sampling the next token, the following approach was used:
+
+1. First, a softmax with a temperature of 0.5 was applied to the model's output.
+2. Then, a token was chosen using a multinomial distribution.
+   
+This approach introduced a bit of randomness in predicting the next word, which made the model more creative and able to generate more varied text with a similar prompt.
+
+An example generation from this model is shown below:
+
+"Before going to bed, she"
+
+``` Before going to bed, she was able to make a call to the group . ```
