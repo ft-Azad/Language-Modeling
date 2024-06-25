@@ -3,7 +3,7 @@
 <h1 align="center">Language Modeling</h1>
 </div>
 
--- ReadMe is in progress --
+
 ## 1. Problem Statement
 
 Language modeling is the task of predicting the next word in a sequence of text, given the previous words. It is a fundamental problem in natural language processing (NLP) with a wide range of applications. 
