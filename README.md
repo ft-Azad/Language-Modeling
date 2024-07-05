@@ -123,7 +123,7 @@ In contrast, the improved model with the added regularization showed a much more
 
 This difference in the learning curves illustrates how the regularization techniques were crucial in enabling the improved model to learn more robust and generalized representations, rather than simply memorizing the training data.
 
-![Learning Curve](https://github.com/ft-Azad/Language-Modeling/blob/main/metric_train%20VS%20epoch.jpeg)
+![Learning Curve](https://github.com/ft-Azad/Language-Modeling/blob/main/results/metric_train%20VS%20epoch.jpeg)
 
 ### 4.4. Evaluate
 
@@ -135,7 +135,7 @@ After implementing the weight tying technique, the parameters for the embedding 
 
 To prevent overfitting as training progressed, techniques such as embedding dropout, locked dropout, and weight drop were introduced. While these regularizers did cause the model to learn more slowly initially, they ultimately allowed the model to continue improving even as the unregularized model started to overfit. The regularized model was able to achieve much better perplexity scores over longer training times and higher epochs compared to the previous configurations.
 
-![validation Curve](https://github.com/ft-Azad/Language-Modeling/blob/main/metric_valid%20VS%20epoch.jpeg)
+![validation Curve](https://github.com/ft-Azad/Language-Modeling/blob/main/results/metric_valid%20VS%20epoch.jpeg)
 
 ### 4.5. Test and Generate
 The loss obtained on the test set is 86.92, which is not the best that can be achieved, but the effect of the applied techniques can be clearly seen compared to the base model.
