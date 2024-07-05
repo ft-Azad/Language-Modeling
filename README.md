@@ -6,11 +6,17 @@
 
 ## 1. Problem Statement
 
-Language modeling is the task of predicting the next word in a sequence of text, given the previous words. It is a fundamental problem in natural language processing (NLP) with a wide range of applications. 
-  Effective language models can be used to power intelligent assistants, improve machine translation, generate realistic text, enhance speech recognition, and even assist with code completion. 
-  These models learn patterns in language by training on large text corpora, allowing them to capture the complexities of human communication. 
-  Advancements in language modeling have been a driving force behind the recent progress in various NLP tasks, making it a crucial component in developing more natural and intelligent interactions
-  between humans and machines.
+Language modeling is the task of predicting the next word in a sequence of text, given the previous words. 
+It's a fundamental problem in natural language processing (NLP) with a wide range of applications. Effective language
+ models can power intelligent assistants, improve machine translation, generate realistic text, enhance speech recognition,
+ and even assist with code completion. These models learn patterns in language by training on large text corpora, allowing
+ them to capture the complexities of human communication. Advancements in language modeling have been a driving force 
+behind recent progress in various NLP tasks, making it a crucial component in developing more natural and intelligent 
+human-machine interactions.
+
+In this project, a language model is trained to take a prompt as input from the user and complete the text. The model 
+uses deep learning to learn from a large corpus of text data, enabling it to generate coherent and contextually 
+appropriate text continuations.
 
 
 

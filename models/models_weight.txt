@@ -1,0 +1,1 @@
+For using generate.py, at least one model.pt file should be saved in the models/ folder or another path should be provided to the script instead of the default.
